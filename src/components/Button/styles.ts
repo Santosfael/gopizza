@@ -3,11 +3,11 @@ import { RectButton } from 'react-native-gesture-handler';
 
 export type TypeProps = 'primary' | 'secondary';
 
-type ConatinerProps = {
+type ContainerProps = {
     type: TypeProps;
 }
 
-export const Container = styled(RectButton)<ConatinerProps>`
+export const Container = styled(RectButton) <ContainerProps>`
     flex: 1;
 
     max-height: 56px;
@@ -29,6 +29,6 @@ export const Title = styled.Text`
     `};
 `;
 
-export const Load = styled.ActivityIndicator.attrs(({theme}) => ({
+export const Load = styled.ActivityIndicator.attrs(({ theme }) => ({
     color: theme.COLORS.TITLE
 }))``;
