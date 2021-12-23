@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Alert, FlatList, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 import firestore from '@react-native-firebase/firestore';
 
@@ -19,6 +19,7 @@ import {
     MenuHeader,
     Title,
     MenuItemsNumber,
+    NewProductButton
 } from './styles';
 
 export function Home(){
@@ -62,9 +63,15 @@ export function Home(){
         navigation.navigate('product', { id });
     }
 
-    useEffect(() => {
-        fetchPizzas('');
-    },[]);
+    function handleAdd() {
+        navigation.navigate('product', {});
+    }
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchPizzas('')
+        },[])
+    );
 
     return (
         <Container>
@@ -87,7 +94,7 @@ export function Home(){
 
             <MenuHeader>
                 <Title>Cardápio</Title>
-                <MenuItemsNumber>10 pizzas</MenuItemsNumber>
+                <MenuItemsNumber>{pizzas.length} pizzas</MenuItemsNumber>
             </MenuHeader>
 
             <FlatList 
@@ -105,6 +112,12 @@ export function Home(){
                     paddingBottom: 125,
                     marginHorizontal: 24
                 }}
+            />
+
+            <NewProductButton 
+                title='Cadastrar Pizza'
+                type='secondary'
+                onPress={handleAdd}
             />
         </Container>
     );

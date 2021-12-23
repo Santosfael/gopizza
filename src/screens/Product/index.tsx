@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Platform, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { Platform, TouchableOpacity, ScrollView, Alert, View } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
-import { useRoute } from '@react-navigation/native';
 import storage from '@react-native-firebase/storage';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -47,9 +47,83 @@ export function Product() {
     const [isLoading, setIsLoading] = useState(false);
     const [ photoPath, setPhotoPath ] = useState('');
 
+    const navigation = useNavigation();
+
     const route = useRoute();
     const { id } = route.params as ProductNavigationProps;
 
+    
+    async function handlePickerImage() {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status === 'granted') {
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                aspect: [4, 4]
+            });
+            
+            if (!result.cancelled)
+            setImage(result.uri)
+        }
+    }
+    
+    async function handleAdd() {
+        if (!name.trim())
+        return Alert.alert('Cadastro', 'Informe o nome da pizza.');
+        
+        if (!description.trim())
+        return Alert.alert('Cadastro', 'Informe a descrição da pizza.');
+        
+        if (!image.trim())
+        return Alert.alert('Cadastro', 'Selecione a imagem da pizza.');
+        
+        if (!priceSizeP.trim() || !priceSizeM.trim() || !priceSizeG.trim())
+        return Alert.alert('Cadastro', 'Informe o valor de todos os tamanhos de pizza.');
+        
+        setIsLoading(true);
+        
+        const fileName = new Date().getTime();
+        const reference = storage().ref(`/pizzas/${fileName}.png`);
+        
+        await reference.putFile(image);
+        const photo_url = await reference.getDownloadURL();
+        
+        firestore()
+        .collection('pizzas')
+        .add({
+            name,
+            name_insensitive: name.toLowerCase().trim(),
+            description,
+            prices_sizes: {
+                p: priceSizeP,
+                m: priceSizeM,
+                g: priceSizeG
+            },
+            photo_url,
+            photo_path: reference.fullPath
+        })
+        .then(() => navigation.navigate('home'))
+        .catch(() => Alert.alert('Cadastro', 'Não foi possível salvar a pizza.'));
+        
+        setIsLoading(false);
+    }
+    
+    function handleGoBack() {
+        navigation.goBack();
+    }
+
+    function handleDelete() {
+        firestore()
+        .collection('pizzas')
+        .doc(id)
+        .delete()
+        .then(() => {
+            storage()
+            .ref(photoPath)
+            .delete()
+            .then(() => navigation.navigate('home'))
+        });
+    }
+    
     useEffect(() => {
         if(id) {
             firestore()
@@ -68,78 +142,32 @@ export function Product() {
             })
         }
     }, [id]);
-
-    async function handlePickerImage() {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status === 'granted') {
-            const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                aspect: [4, 4]
-            });
-
-            if (!result.cancelled)
-                setImage(result.uri)
-        }
-    }
-
-    async function handleAdd() {
-        if (!name.trim())
-            return Alert.alert('Cadastro', 'Informe o nome da pizza.');
-
-        if (!description.trim())
-            return Alert.alert('Cadastro', 'Informe a descrição da pizza.');
-
-        if (!image.trim())
-            return Alert.alert('Cadastro', 'Selecione a imagem da pizza.');
-
-        if (!priceSizeP.trim() || !priceSizeM.trim() || !priceSizeG.trim())
-            return Alert.alert('Cadastro', 'Informe o valor de todos os tamanhos de pizza.');
-
-        setIsLoading(true);
-
-        const fileName = new Date().getTime();
-        const reference = storage().ref(`/pizzas/${fileName}.png`);
-
-        await reference.putFile(image);
-        const photo_url = await reference.getDownloadURL();
-
-        firestore()
-            .collection('pizzas')
-            .add({
-                name,
-                name_insensitive: name.toLowerCase().trim(),
-                description,
-                prices_sizes: {
-                    p: priceSizeP,
-                    m: priceSizeM,
-                    g: priceSizeG
-                },
-                photo_url,
-                photo_path: reference.fullPath
-            })
-            .then(() => Alert.alert('Cadastro', 'Pizza cadastrada com sucesso.'))
-            .catch(() => Alert.alert('Cadastro', 'Não foi possível salvar a pizza.'));
-
-        setIsLoading(false);
-    }
+    
     return (
         <Container behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <ScrollView showsVerticalScrollIndicator={false}>
                 <Header>
-                    <ButtonBack />
+                    <ButtonBack onPress={handleGoBack} />
                     <Title>Cadastrar</Title>
-                    <TouchableOpacity>
-                        <DeleteLabel>Delete</DeleteLabel>
-                    </TouchableOpacity>
+                    {
+                        id ?
+                        <TouchableOpacity onPress={handleDelete}>
+                            <DeleteLabel>Deletar</DeleteLabel>
+                        </TouchableOpacity>
+                        : <View style={{width: 40}} />
+                    }
                 </Header>
                 <Upload>
                     <Photo uri={image} />
 
-                    <PickImageButton
-                        title='Carregar'
-                        type="secondary"
-                        onPress={handlePickerImage}
-                    />
+                    {
+                        !id &&
+                        <PickImageButton
+                            title='Carregar'
+                            type="secondary"
+                            onPress={handlePickerImage}
+                        />
+                    }
                 </Upload>
                 <Form>
                     <InputGroup>
@@ -184,11 +212,14 @@ export function Product() {
                         />
                     </InputGroup>
 
-                    <Button
-                        title='Cadastrar pizza'
-                        isLoading={isLoading}
-                        onPress={handleAdd}
-                    />
+                    {
+                        !id &&
+                        <Button
+                            title='Cadastrar Pizza'
+                            isLoading={isLoading}
+                            onPress={handleAdd}
+                        />
+                    }
                 </Form>
             </ScrollView>
         </Container>
