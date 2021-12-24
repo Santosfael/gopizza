@@ -33,7 +33,7 @@ export const Name = styled.Text`
 
     ${({ theme }) => css`
         font-family: ${theme.FONTS.TITLE};
-        color: ${theme.COLORS.TITLE};
+        color: ${theme.COLORS.SECONDARY_900};
     `};
 `;
 
