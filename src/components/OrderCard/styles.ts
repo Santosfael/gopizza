@@ -24,7 +24,7 @@ export const Container = styled.TouchableOpacity<ContainerProps>`
 export const Image = styled.Image`
     width: 104px;
     height: 104px;
-    border-radius: 52;
+    border-radius: 52px;
 `;
 
 export const Name = styled.Text`
@@ -74,6 +74,6 @@ export const StatusLabel = styled.Text<StatusProps>`
 
     ${({ theme, status }) => css`
         font-family: ${theme.FONTS.TEXT};
-        background-color: ${status === 'Preparando' ? theme.COLORS.ALERT_900 : theme.COLORS.TITLE};
+        color: ${status === 'Preparando' ? theme.COLORS.ALERT_900 : theme.COLORS.TITLE};
     `}; 
 `;
