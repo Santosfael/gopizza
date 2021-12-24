@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Platform, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 import { RadioButton } from '@components/RadioButton';
 import { ButtonBack } from '@components/ButtonBack';
@@ -24,12 +25,17 @@ import {
 
 export function Order() {
     const [sizes, setSizes] = useState('');
+    const navigation = useNavigation();
+
+    function handleGoBack() {
+        navigation.goBack();
+    }
     return (
         <Container behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <ContentScroll>
                 <Header>
                     <ButtonBack
-                        onPress={() => { }}
+                        onPress={handleGoBack}
                         style={{ marginBottom: 108 }}
                     />
                 </Header>
