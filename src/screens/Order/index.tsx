@@ -7,9 +7,12 @@ import { OrderNavigationProps } from '@src/@types/navigation';
 import { RadioButton } from '@components/RadioButton';
 import { ButtonBack } from '@components/ButtonBack';
 
+import { ProductProps } from '@src/components/ProductCard';
 import { PIZZA_TYPES } from '../../utils/pizzaTypes';
 import { Button } from '@components/Button';
 import { Input } from '@components/Input';
+
+import { useAuth } from '@hooks/auth';
 
 import {
     Container,
@@ -24,7 +27,6 @@ import {
     Sizes,
     Title,
 } from './styles';
-import { ProductProps } from '@src/components/ProductCard';
 
 type PizzaResponse = ProductProps & {
     prices_sizes: {
@@ -36,7 +38,10 @@ export function Order() {
     const [ sizes, setSizes ] = useState('');
     const [ pizza, setPizza ] = useState<PizzaResponse>({} as PizzaResponse);
     const [ quantity, setQuantity ] = useState(0);
-    const [ tableNUmber, setTableNumber ] = useState('');
+    const [ tableNumber, setTableNumber ] = useState('');
+    const [ sendingOrder, setSendingOrder ] = useState(false);
+    const { user } = useAuth();
+
     const navigation = useNavigation();
     const route = useRoute();
     const { id } = route.params as OrderNavigationProps;
@@ -45,6 +50,34 @@ export function Order() {
 
     function handleGoBack() {
         navigation.goBack();
+    }
+
+    function handleOrder() {
+        if(!sizes) return Alert.alert('Pedido', 'Selecione o tamanho da pizza.');
+
+        if(!tableNumber) return Alert.alert('Pedido', 'Infome o número da mesa.');
+
+        if(!quantity) return Alert.alert('Pedido', 'Informe a quantidade.');
+
+        setSendingOrder(true);
+
+        firestore()
+            .collection('orders')
+            .add({
+            quantity,
+            amount,
+            pizza: pizza.name,
+            sizes,
+            table_number: tableNumber,
+            status: 'Preparando',
+                waiter_id: user?.id,
+                image: pizza.photo_url
+            })
+        .then(() => navigation.navigate('home'))
+        .catch(() => {
+            Alert.alert('Pedido', 'Não foi possível realizar o pedido');
+            setSendingOrder(false);
+        })
     }
 
     useEffect(() => {
@@ -102,6 +135,8 @@ export function Order() {
                     <Price>valor de R$ {amount}</Price>
                     <Button
                         title='Confirmar pedido'
+                        onPress={handleOrder}
+                        isLoading={sendingOrder}
                     />
                 </Form>
             </ContentScroll>
