@@ -52,7 +52,7 @@ Instale todas as dependências da aplicação no diretório do projeto\
 `yarn` ou `npx install`\
 No diretório do projeto, você pode executar:\
 - Observação: Como está sendo usado recursos nativos do Android, recomendo usar o emulador para testar a aplicação\
-`expo start` (Como o projeto foi desenvolvido utilizando o Expo com managed workflow, sendo assim ao digitar `yarn start` ele não abre a página para usar o smartphone físico pelo QrCode)
+`expo start` (Como o projeto foi desenvolvido utilizando o Expo com bare workflow, sendo assim ao digitar `yarn start` ele não abre a página para usar o smartphone físico pelo QrCode)
 
 #### Para configurar o emulador do Android recomendo o Tutorial da Rocketseat 
 [Ambiente React Native](https://react-native.rocketseat.dev/)
